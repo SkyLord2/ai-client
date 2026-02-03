@@ -3,13 +3,6 @@
 import { reactive, ref } from 'vue'
 import { useToast } from 'wot-design-uni'
 
-import WdButton from 'wot-design-uni/components/wd-button/wd-button.vue'
-import WdCheckbox from 'wot-design-uni/components/wd-checkbox/wd-checkbox.vue'
-import WdDivider from 'wot-design-uni/components/wd-divider/wd-divider.vue'
-// 显式引入组件以确保正确渲染
-import WdInput from 'wot-design-uni/components/wd-input/wd-input.vue'
-import WdToast from 'wot-design-uni/components/wd-toast/wd-toast.vue'
-
 // 定义页面元数据，设置导航栏标题
 definePage({
   type: 'home',
