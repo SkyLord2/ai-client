@@ -1,6 +1,14 @@
 <script setup lang="ts">
 // 引入必要的 Vue 组合式 API
 import { reactive, ref } from 'vue'
+import { useToast } from 'wot-design-uni'
+
+import WdButton from 'wot-design-uni/components/wd-button/wd-button.vue'
+import WdCheckbox from 'wot-design-uni/components/wd-checkbox/wd-checkbox.vue'
+import WdDivider from 'wot-design-uni/components/wd-divider/wd-divider.vue'
+// 显式引入组件以确保正确渲染
+import WdInput from 'wot-design-uni/components/wd-input/wd-input.vue'
+import WdToast from 'wot-design-uni/components/wd-toast/wd-toast.vue'
 
 // 定义页面元数据，设置导航栏标题
 definePage({
@@ -36,13 +44,10 @@ const errors = reactive<FormErrors>({})
 
 // 密码可见性状态
 const showPassword = ref(false)
-
-/**
- * 切换密码显示/隐藏状态
- */
-function togglePasswordVisibility() {
-  showPassword.value = !showPassword.value
-}
+// 登录加载状态
+const loading = ref(false)
+// Toast 实例
+const toast = useToast()
 
 /**
  * 表单验证函数
@@ -82,22 +87,19 @@ function handleLogin() {
     return
   }
 
-  // 模拟登录请求
-  uni.showLoading({
-    title: '登录中...',
-  })
+  // 设置加载状态
+  loading.value = true
 
   setTimeout(() => {
-    uni.hideLoading()
+    loading.value = false
     // 模拟登录成功
-    uni.showToast({
-      title: '登录成功',
-      icon: 'success',
-    })
+    toast.success('登录成功')
     console.log('Login data:', formData)
 
-    // TODO: 登录成功后的跳转逻辑
-    // uni.switchTab({ url: '/pages/index/index' })
+    // 登录成功后的跳转逻辑
+    setTimeout(() => {
+      uni.switchTab({ url: '/pages/index/index' })
+    }, 500)
   }, 1500)
 }
 
@@ -105,20 +107,14 @@ function handleLogin() {
  * 处理忘记密码点击
  */
 function handleForgotPassword() {
-  uni.showToast({
-    title: '点击了忘记密码',
-    icon: 'none',
-  })
+  toast.info('点击了忘记密码')
 }
 
 /**
  * 切换语言（仅UI演示）
  */
 function switchLanguage() {
-  uni.showToast({
-    title: 'Switch Language',
-    icon: 'none',
-  })
+  toast.info('Switch Language')
 }
 
 /**
@@ -126,177 +122,148 @@ function switchLanguage() {
  * @param method 登录方式
  */
 function handleOtherLogin(method: string) {
-  uni.showToast({
-    title: `选择登录方式: ${method}`,
-    icon: 'none',
-  })
+  toast.info(`选择登录方式: ${method}`)
 }
 </script>
 
 <template>
-  <!-- 页面主容器：全屏，Flex布局 -->
-  <view class="min-h-screen w-full flex bg-gray-50">
+  <!-- 页面主容器 -->
+  <view class="login-container">
+    <wd-toast />
     <!-- 左侧插画区域：在大屏幕（md及以上）显示，小屏幕隐藏 -->
-    <!-- 使用 bg-primary 设置主色调背景 -->
-    <view class="relative hidden flex-1 flex-col items-center justify-center overflow-hidden bg-blue-600 p-10 text-white md:flex">
+    <view class="illustration-section">
       <!-- 装饰性背景圆 -->
-      <view class="absolute h-80 w-80 rounded-full bg-white/10 blur-3xl -left-20 -top-20" />
-      <view class="absolute bottom-0 right-0 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+      <view class="bg-circle-1" />
+      <view class="bg-circle-2" />
 
       <!-- 插画容器 -->
-      <view class="relative z-10 max-w-lg text-center">
-        <!-- 这里使用一个简单的插画占位，实际项目中应替换为 SVG 或 Image -->
-        <view class="i-carbon-dashboard mx-auto mb-8 text-9xl opacity-90" />
-        <view class="mb-4 text-4xl font-bold">
+      <view class="content-wrapper">
+        <view class="i-carbon-dashboard icon-dashboard" />
+        <view class="title">
           数字化管理平台
         </view>
-        <view class="text-lg opacity-80">
+        <view class="subtitle">
           本平台为互联网非涉密平台，严禁处理、传输国家秘密
         </view>
       </view>
 
       <!-- 底部波浪装饰 -->
-      <view class="absolute bottom-0 left-0 right-0 h-20 origin-bottom-left skew-y-3 transform bg-white/5" />
+      <view class="wave-decoration" />
     </view>
 
     <!-- 右侧登录表单区域 -->
-    <view class="relative flex flex-1 flex-col bg-white">
+    <view class="form-section">
       <!-- 顶部右上角：语言切换 -->
-      <view class="absolute right-6 top-6 flex cursor-pointer items-center gap-2 text-gray-500 hover:text-primary" @click="switchLanguage">
-        <text class="text-sm">中文 / English</text>
+      <view class="language-switch" @click="switchLanguage">
+        <text class="text-sm">
+          中文 / English
+        </text>
       </view>
 
       <!-- 表单垂直居中容器 -->
-      <view class="flex flex-1 flex-col items-center justify-center p-8 lg:p-24 sm:p-12">
-        <view class="max-w-md w-full space-y-8">
+      <view class="form-wrapper">
+        <view class="form-content">
           <!-- 标题区域 -->
-          <view class="text-center">
-            <view class="mx-auto mb-4 h-20 w-20 flex items-center justify-center rounded-full bg-blue-100">
-              <view class="i-carbon-user-avatar-filled-alt text-5xl text-blue-600" />
+          <view class="header-section">
+            <view class="avatar-wrapper">
+              <view class="i-carbon-user-avatar-filled-alt avatar-icon" />
             </view>
-            <h2 class="text-3xl text-gray-900 font-bold tracking-tight">
+            <h2 class="form-title">
               用户登录
             </h2>
-            <text class="mt-2 block text-sm text-gray-500">欢迎回来，请登录您的账号</text>
+            <text class="form-subtitle">欢迎回来，请登录您的账号</text>
           </view>
 
           <!-- 登录表单 -->
-          <view class="mt-8 space-y-6">
+          <view class="form-body">
             <!-- 用户名输入框 -->
-            <view class="space-y-1">
-              <label for="username" class="block text-sm text-gray-700 font-medium">用户名</label>
-              <view
-                class="relative flex items-center rounded-md px-3 py-3 shadow-sm ring-1 ring-gray-300 ring-inset focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-inset"
-                :class="{ 'ring-red-500 focus-within:ring-red-500': errors.username }"
+            <view class="input-wrapper">
+              <wd-input
+                v-model="formData.username"
+                label="用户名"
+                label-width="80px"
+                placeholder="请输入用户名/手机号"
+                clearable
+                :error-message="errors.username"
+                use-prefix-slot
+                no-border
               >
-                <view class="pointer-events-none mr-2 flex items-center">
-                  <view class="i-carbon-user text-lg text-gray-400" />
-                </view>
-                <input
-                  id="username"
-                  v-model="formData.username"
-                  type="text"
-                  class="block w-full flex-1 border-0 bg-transparent p-0 text-gray-900 sm:text-sm placeholder:text-gray-400 sm:leading-6 focus:outline-none"
-                  placeholder="请输入用户名/手机号"
-                >
-              </view>
-              <!-- 错误提示 -->
-              <text v-if="errors.username" class="mt-1 text-xs text-red-500">{{ errors.username }}</text>
+                <template #prefix>
+                  <view class="i-carbon-user input-icon" />
+                </template>
+              </wd-input>
             </view>
 
             <!-- 密码输入框 -->
-            <view class="space-y-1">
-              <label for="password" class="block text-sm text-gray-700 font-medium">密码</label>
-              <view
-                class="relative flex items-center rounded-md px-3 py-3 shadow-sm ring-1 ring-gray-300 ring-inset focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-inset"
-                :class="{ 'ring-red-500 focus-within:ring-red-500': errors.password }"
+            <view class="input-wrapper">
+              <wd-input
+                v-model="formData.password"
+                label="密码"
+                label-width="80px"
+                placeholder="请输入密码"
+                show-password
+                clearable
+                :error-message="errors.password"
+                use-prefix-slot
+                no-border
               >
-                <view class="pointer-events-none mr-2 flex items-center">
-                  <view class="i-carbon-password text-lg text-gray-400" />
-                </view>
-                <input
-                  id="password"
-                  v-model="formData.password"
-                  type="text"
-                  :password="!showPassword"
-                  class="block w-full flex-1 border-0 bg-transparent p-0 text-gray-900 sm:text-sm placeholder:text-gray-400 sm:leading-6 focus:outline-none"
-                  placeholder="请输入密码"
-                >
-                <!-- 密码显示切换按钮 -->
-                <view class="ml-2 flex cursor-pointer items-center" @click="togglePasswordVisibility">
-                  <view :class="showPassword ? 'i-carbon-view-off' : 'i-carbon-view'" class="text-lg text-gray-400" />
-                </view>
-              </view>
-              <!-- 错误提示 -->
-              <text v-if="errors.password" class="mt-1 text-xs text-red-500">{{ errors.password }}</text>
+                <template #prefix>
+                  <view class="i-carbon-password input-icon" />
+                </template>
+              </wd-input>
             </view>
 
             <!-- 记住我和忘记密码 -->
-            <view class="flex items-center justify-between">
-              <view class="flex items-center" @click="formData.rememberMe = !formData.rememberMe">
-                <!-- 自定义复选框样式 -->
-                <view
-                  class="h-4 w-4 flex items-center justify-center border rounded transition-colors"
-                  :class="formData.rememberMe ? 'bg-blue-600 border-blue-600' : 'border-gray-300 bg-white'"
-                >
-                  <view v-if="formData.rememberMe" class="i-carbon-checkmark text-xs text-white" />
-                </view>
-                <label class="ml-2 block cursor-pointer select-none text-sm text-gray-900">记住我</label>
+            <view class="form-actions">
+              <view class="remember-me">
+                <wd-checkbox v-model="formData.rememberMe">
+                  记住我
+                </wd-checkbox>
               </view>
 
-              <view class="text-sm">
-                <text class="cursor-pointer text-blue-600 font-medium hover:text-blue-500" @click="handleForgotPassword">忘记密码?</text>
+              <view class="forgot-password">
+                <text class="link-text" @click="handleForgotPassword">忘记密码?</text>
               </view>
             </view>
 
             <!-- 登录按钮 -->
-            <view>
-              <button
-                class="w-full flex justify-center rounded-md bg-blue-600 px-3 py-3 text-sm text-white font-semibold leading-6 shadow-sm transition-colors active:scale-[0.98] hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-blue-600 focus-visible:outline-offset-2 focus-visible:outline"
-                @click="handleLogin"
-              >
+            <view class="submit-btn-wrapper">
+              <wd-button block size="large" :loading="loading" @click="handleLogin">
                 登录
-              </button>
+              </wd-button>
             </view>
 
-            <!-- 其他功能链接 -->
-            <view class="mt-4 flex justify-center">
-              <text class="cursor-pointer text-sm text-blue-600 hover:text-blue-500">注册新账号</text>
+            <!-- 注册链接 -->
+            <view class="register-link">
+              <text class="link-text">注册新账号</text>
             </view>
           </view>
 
           <!-- 其他登录方式分割线 -->
-          <view class="mt-10">
-            <view class="relative">
-              <view class="absolute inset-0 flex items-center" aria-hidden="true">
-                <view class="w-full border-t border-gray-300" />
-              </view>
-              <view class="relative flex justify-center">
-                <text class="bg-white px-2 text-sm text-gray-500">选择登录方式</text>
-              </view>
-            </view>
+          <view class="divider-section">
+            <wd-divider>选择登录方式</wd-divider>
 
             <!-- 社交登录图标 -->
-            <view class="mt-6 flex justify-center gap-8">
-              <view class="group flex flex-col cursor-pointer items-center gap-1" @click="handleOtherLogin('wechat')">
-                <view class="h-10 w-10 flex items-center justify-center rounded-full bg-green-50 text-green-600 transition-colors group-hover:bg-green-100">
-                  <view class="i-carbon-logo-wechat text-xl" />
+            <view class="social-login">
+              <view class="social-item group" @click="handleOtherLogin('wechat')">
+                <view class="social-icon-bg social-icon-bg--wechat">
+                  <view class="i-carbon-logo-wechat social-icon" />
                 </view>
-                <text class="text-xs text-gray-500">微信</text>
+                <text class="social-text">微信</text>
               </view>
 
-              <view class="group flex flex-col cursor-pointer items-center gap-1" @click="handleOtherLogin('scan')">
-                <view class="h-10 w-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-100">
-                  <view class="i-carbon-qr-code text-xl" />
+              <view class="social-item group" @click="handleOtherLogin('scan')">
+                <view class="social-icon-bg social-icon-bg--scan">
+                  <view class="i-carbon-qr-code social-icon" />
                 </view>
-                <text class="text-xs text-gray-500">扫码</text>
+                <text class="social-text">扫码</text>
               </view>
 
-              <view class="group flex flex-col cursor-pointer items-center gap-1" @click="handleOtherLogin('otp')">
-                <view class="h-10 w-10 flex items-center justify-center rounded-full bg-purple-50 text-purple-600 transition-colors group-hover:bg-purple-100">
-                  <view class="i-carbon-password text-xl" />
+              <view class="social-item group" @click="handleOtherLogin('otp')">
+                <view class="social-icon-bg social-icon-bg--otp">
+                  <view class="i-carbon-password social-icon" />
                 </view>
-                <text class="text-xs text-gray-500">动态口令</text>
+                <text class="social-text">动态口令</text>
               </view>
             </view>
           </view>
@@ -306,7 +273,157 @@ function handleOtherLogin(method: string) {
   </view>
 </template>
 
-<style scoped>
-/* 使用 UnoCSS，此处仅保留少量可能需要的自定义样式 */
-/* 如果需要针对 input 的 placeholder 修改颜色，可以使用 UnoCSS 的 placeholder:text-gray-400 */
+<style lang="scss" scoped>
+.login-container {
+  @apply min-h-screen w-full flex bg-gray-50;
+}
+
+.illustration-section {
+  @apply relative hidden flex-1 flex-col items-center justify-center overflow-hidden bg-blue-600 p-10 text-white md:flex;
+
+  .bg-circle-1 {
+    @apply absolute h-80 w-80 rounded-full bg-white/10 blur-3xl -left-20 -top-20;
+  }
+
+  .bg-circle-2 {
+    @apply absolute bottom-0 right-0 h-96 w-96 rounded-full bg-white/10 blur-3xl;
+  }
+
+  .content-wrapper {
+    @apply relative z-10 max-w-lg text-center;
+
+    .icon-dashboard {
+      @apply mx-auto mb-8 text-9xl opacity-90;
+    }
+
+    .title {
+      @apply mb-4 text-4xl font-bold;
+    }
+
+    .subtitle {
+      @apply text-lg opacity-80;
+    }
+  }
+
+  .wave-decoration {
+    @apply absolute bottom-0 left-0 right-0 h-20 origin-bottom-left skew-y-3 transform bg-white/5;
+  }
+}
+
+.form-section {
+  @apply relative flex flex-1 flex-col bg-white;
+
+  .language-switch {
+    @apply absolute right-6 top-6 flex cursor-pointer items-center gap-2 text-gray-500 hover:text-primary;
+  }
+
+  .form-wrapper {
+    @apply flex flex-1 flex-col items-center justify-center p-8 lg:p-24 sm:p-12;
+
+    .form-content {
+      @apply max-w-md w-full space-y-8;
+    }
+  }
+}
+
+.header-section {
+  @apply text-center;
+
+  .avatar-wrapper {
+    @apply mx-auto mb-4 h-20 w-20 flex items-center justify-center rounded-full bg-blue-100;
+
+    .avatar-icon {
+      @apply text-5xl text-blue-600;
+    }
+  }
+
+  .form-title {
+    @apply text-3xl text-gray-900 font-bold tracking-tight;
+  }
+
+  .form-subtitle {
+    @apply mt-2 block text-sm text-gray-500;
+  }
+}
+
+.form-body {
+  @apply mt-8 space-y-6;
+
+  .input-icon {
+    @apply text-lg text-gray-400 mr-2;
+  }
+
+  .form-actions {
+    @apply flex items-center justify-between;
+
+    .remember-me {
+      @apply flex items-center;
+    }
+
+    .forgot-password {
+      @apply text-sm;
+    }
+  }
+
+  .submit-btn-wrapper {
+    @apply mt-6;
+  }
+
+  .register-link {
+    @apply mt-4 flex justify-center;
+  }
+
+  .link-text {
+    @apply cursor-pointer text-sm text-blue-600 hover:text-blue-500 font-medium;
+  }
+}
+
+.input-wrapper {
+  /* 显式设置边框和背景，确保可见性 */
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 0.5rem;
+  background-color: #ffffff;
+  @apply transition-colors overflow-hidden;
+
+  &:focus-within {
+    border-color: #3b82f6; /* blue-500 */
+    @apply ring-2 ring-blue-100;
+  }
+}
+
+.divider-section {
+  @apply mt-10;
+
+  .social-login {
+    @apply mt-6 flex justify-center gap-8;
+
+    .social-item {
+      @apply flex flex-col cursor-pointer items-center gap-1;
+
+      .social-icon-bg {
+        @apply h-10 w-10 flex items-center justify-center rounded-full transition-colors;
+
+        &--wechat {
+          @apply bg-green-50 text-green-600 group-hover:bg-green-100;
+        }
+
+        &--scan {
+          @apply bg-blue-50 text-blue-600 group-hover:bg-blue-100;
+        }
+
+        &--otp {
+          @apply bg-purple-50 text-purple-600 group-hover:bg-purple-100;
+        }
+      }
+
+      .social-icon {
+        @apply text-xl;
+      }
+
+      .social-text {
+        @apply text-xs text-gray-500;
+      }
+    }
+  }
+}
 </style>

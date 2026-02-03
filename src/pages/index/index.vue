@@ -43,9 +43,9 @@ onLoad(() => {
     </view>
     <view class="mt-4 text-center">
       官网地址：
-      <text class="text-green-500">
+      <wd-link class="text-green-500" href="https://unibest.tech">
         https://unibest.tech
-      </text>
+      </wd-link>
     </view>
   </view>
 </template>
