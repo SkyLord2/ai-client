@@ -2,6 +2,7 @@
 // 引入必要的 Vue 组合式 API
 import { reactive, ref } from 'vue'
 import { useToast } from 'wot-design-uni'
+import { useUserStore } from '@/store/user'
 
 // 定义页面元数据，设置导航栏标题
 definePage({
@@ -41,6 +42,8 @@ const showPassword = ref(false)
 const loading = ref(false)
 // Toast 实例
 const toast = useToast()
+// User Store
+const userStore = useUserStore()
 
 /**
  * 表单验证函数
@@ -85,13 +88,32 @@ function handleLogin() {
 
   setTimeout(() => {
     loading.value = false
+
+    // 模拟后端返回的用户信息
+    const mockUser = {
+      userId: 12345,
+      username: formData.username,
+      nickname: 'AI 体验官',
+      avatar: '', // 使用默认头像
+    }
+
+    // 保存用户信息到全局 Store
+    userStore.setUserInfo(mockUser)
+
     // 模拟登录成功
     toast.success('登录成功')
-    console.log('Login data:', formData)
 
     // 登录成功后的跳转逻辑
     setTimeout(() => {
-      uni.switchTab({ url: '/pages/index/index' })
+      // 跳转到首页 (TabBar 页面)
+      uni.switchTab({
+        url: '/pages/index/index',
+        fail: (err) => {
+          console.error('switchTab failed, trying redirectTo:', err)
+          // 容错处理：如果不是 TabBar 页面，尝试使用 redirectTo
+          uni.redirectTo({ url: '/pages/index/index' })
+        },
+      })
     }, 500)
   }, 1500)
 }
@@ -373,7 +395,7 @@ function handleOtherLogin(method: string) {
 
 .input-wrapper {
   /* 显式设置边框和背景，确保可见性 */
-  border: 1px solid #d1d5db; /* gray-300 */
+  border: 1px solid #9ca3af; /* gray-400 */
   border-radius: 0.5rem;
   background-color: #ffffff;
   @apply transition-colors overflow-hidden;
